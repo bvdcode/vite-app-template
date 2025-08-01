@@ -59,7 +59,14 @@ function replaceInFile(filePath, sanitizedName, originalName, config) {
     
     for (const key of sortedConfigKeys) {
       if (content.includes(key)) {
-        content = content.replace(new RegExp(key, 'g'), config[key]);
+        let replacementValue = config[key];
+        
+        // Если значение это массив или объект, конвертируем в JSON строку
+        if (typeof replacementValue === 'object' && replacementValue !== null) {
+          replacementValue = JSON.stringify(replacementValue);
+        }
+        
+        content = content.replace(new RegExp(key, 'g'), replacementValue);
         modified = true;
       }
     }
