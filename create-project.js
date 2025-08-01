@@ -25,6 +25,9 @@ function findFiles(
       }
     } else {
       const ext = path.extname(file);
+      if (ignoreFiles.includes(file)) {
+        continue;
+      }
       if (extensions.includes(ext) || file === "README.md") {
         results.push(filePath);
       }
