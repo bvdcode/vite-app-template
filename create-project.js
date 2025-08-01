@@ -64,28 +64,67 @@ function replaceInFile(filePath, projectName) {
 }
 
 function sanitizeProjectName(projectName) {
-  const allowedChars = /[a-zA-Z0-9.\-_ ]/g;
-  const sanitized =
-    projectName.match(allowedChars)?.join("").replace(/\./g, "-") || "";
+  // Заменяем все что не буквы/цифры на тире
+  let sanitized = projectName.replace(/[^a-zA-Z0-9]/g, "-");
+  
+  // Убираем дублирующиеся тире
+  sanitized = sanitized.replace(/-+/g, "-");
+  
+  // Убираем тире в начале и конце
+  sanitized = sanitized.replace(/^-+|-+$/g, "");
+  
   return sanitized;
+}
+
+function validateProjectName(projectName) {
+  // Проверяем что имя не пустое
+  if (!projectName.trim()) {
+    return { valid: false, error: "Project name cannot be empty!" };
+  }
+  
+  // Санитизируем имя
+  const sanitized = sanitizeProjectName(projectName.trim());
+  
+  // Проверяем что после санитизации что-то осталось
+  if (!sanitized) {
+    return { valid: false, error: "Project name contains only invalid characters!" };
+  }
+  
+  // Проверяем что имя не состоит только из тире
+  if (sanitized === "-" || sanitized.match(/^-+$/)) {
+    return { valid: false, error: "Project name cannot consist only of dashes!" };
+  }
+  
+  // Проверяем что имя начинается с буквы
+  if (!sanitized.match(/^[a-zA-Z]/)) {
+    return { valid: false, error: "Project name must start with a letter!" };
+  }
+  
+  // Проверяем минимальную длину (хотя бы 2 символа)
+  if (sanitized.length < 2) {
+    return { valid: false, error: "Project name must be at least 2 characters long!" };
+  }
+  
+  // Проверяем максимальную длину (не больше 50 символов)
+  if (sanitized.length > 50) {
+    return { valid: false, error: "Project name must be no more than 50 characters long!" };
+  }
+  
+  return { valid: true, sanitized };
 }
 
 function main() {
   rl.question("Enter project name: ", (inputName) => {
-    if (!inputName.trim()) {
-      console.log("❌ Project name cannot be empty!");
+    const validation = validateProjectName(inputName);
+    
+    if (!validation.valid) {
+      console.log(`❌ ${validation.error}`);
       rl.close();
       return;
     }
-
-    const projectName = sanitizeProjectName(inputName.trim());
-
-    if (!projectName) {
-      console.log("❌ Project name contains only invalid characters!");
-      rl.close();
-      return;
-    }
-
+    
+    const projectName = validation.sanitized;
+    
     if (projectName !== inputName.trim()) {
       console.log(
         `📝 Project name sanitized: "${inputName.trim()}" → "${projectName}"`
