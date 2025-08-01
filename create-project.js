@@ -7,9 +7,17 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-function findFiles(
-  dir,
-  extensions = [".json", ".html", ".md", ".js", ".ts", ".tsx"]
+function fin    if (sanitizedName !== originalName) {
+      console.log(
+        `📝 Project name sanitized: "${originalName}" → "${sanitizedName}"`
+      );
+    }
+
+    if (inputName.trim() === '' && defaultName) {
+      console.log(`📝 Using default project name from config: "${defaultName}"`);
+    }
+
+    console.log(`\n🔍 Searching for files to replace in Sources folder...`); extensions = [".json", ".html", ".md", ".js", ".ts", ".tsx"]
 ) {
   let results = [];
   const ignoreFiles = [".DS_Store", "Thumbs.db", path.basename(__filename)];
