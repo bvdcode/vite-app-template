@@ -34,19 +34,20 @@ function findFiles(
   return results;
 }
 
-function replaceInFile(filePath, projectName) {
+function replaceInFile(filePath, sanitizedName, originalName) {
   try {
     let content = fs.readFileSync(filePath, "utf8");
     let modified = false;
 
-    const lowerCaseName = projectName.toLowerCase();
+    // Заменяем vite-app-template на санитизированную версию в нижнем регистре
     if (content.includes("vite-app-template")) {
-      content = content.replace(/vite-app-template/g, lowerCaseName);
+      content = content.replace(/vite-app-template/g, sanitizedName.toLowerCase());
       modified = true;
     }
 
+    // Заменяем VITE_APP_TEMPLATE на оригинальное имя (только trim)
     if (content.includes("VITE_APP_TEMPLATE")) {
-      content = content.replace(/VITE_APP_TEMPLATE/g, projectName);
+      content = content.replace(/VITE_APP_TEMPLATE/g, originalName.trim());
       modified = true;
     }
 
@@ -123,18 +124,28 @@ function main() {
       return;
     }
     
-    const projectName = validation.sanitized;
+    const sanitizedName = validation.sanitized;
+    const originalName = inputName.trim();
     
-    if (projectName !== inputName.trim()) {
+    if (sanitizedName !== originalName) {
       console.log(
-        `📝 Project name sanitized: "${inputName.trim()}" → "${projectName}"`
+        `📝 Project name sanitized: "${originalName}" → "${sanitizedName}"`
       );
     }
 
-    console.log(`\n🔍 Searching for files to replace...`);
+    console.log(`\n🔍 Searching for files to replace in Sources folder...`);
 
     const currentDir = process.cwd();
-    const files = findFiles(currentDir);
+    const sourcesDir = path.join(currentDir, "Sources");
+    
+    // Проверяем что папка Sources существует
+    if (!fs.existsSync(sourcesDir)) {
+      console.log("❌ Sources folder not found!");
+      rl.close();
+      return;
+    }
+    
+    const files = findFiles(sourcesDir);
 
     console.log(`📁 Found ${files.length} files to check`);
 
@@ -143,7 +154,7 @@ function main() {
 
     for (const file of files) {
       processedFiles++;
-      if (replaceInFile(file, projectName)) {
+      if (replaceInFile(file, sanitizedName, originalName)) {
         modifiedFiles++;
       }
     }
@@ -151,7 +162,8 @@ function main() {
     console.log(`\n✨ Done!`);
     console.log(`📊 Files processed: ${processedFiles}`);
     console.log(`🔄 Files modified: ${modifiedFiles}`);
-    console.log(`🎯 Project renamed to: ${projectName}`);
+    console.log(`🎯 vite-app-template → ${sanitizedName.toLowerCase()}`);
+    console.log(`🎯 VITE_APP_TEMPLATE → ${originalName}`);
 
     rl.close();
   });
