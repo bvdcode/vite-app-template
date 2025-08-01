@@ -12,6 +12,7 @@ function findFiles(
   extensions = [".json", ".html", ".md", ".js", ".ts", ".tsx"]
 ) {
   let results = [];
+  const ignoreFiles = [".DS_Store", "Thumbs.db", path.basename(__filename)];
   const files = fs.readdirSync(dir);
 
   for (const file of files) {
@@ -19,15 +20,7 @@ function findFiles(
     const stat = fs.statSync(filePath);
 
     if (stat.isDirectory()) {
-      if (
-        ![
-          "node_modules",
-          ".git",
-          "dist",
-          "build",
-          path.basename(__filename),
-        ].includes(file)
-      ) {
+      if (!["node_modules", ".git", "dist", "build"].includes(file)) {
         results = results.concat(findFiles(filePath, extensions));
       }
     } else {
@@ -70,12 +63,33 @@ function replaceInFile(filePath, projectName) {
   }
 }
 
+function sanitizeProjectName(projectName) {
+  const allowedChars = /[a-zA-Z0-9.\-_ ]/g;
+  const sanitized =
+    projectName.match(allowedChars)?.join("").replace(/\./g, "-") || "";
+  return sanitized;
+}
+
 function main() {
-  rl.question("Enter project name: ", (projectName) => {
-    if (!projectName.trim()) {
+  rl.question("Enter project name: ", (inputName) => {
+    if (!inputName.trim()) {
       console.log("❌ Project name cannot be empty!");
       rl.close();
       return;
+    }
+
+    const projectName = sanitizeProjectName(inputName.trim());
+
+    if (!projectName) {
+      console.log("❌ Project name contains only invalid characters!");
+      rl.close();
+      return;
+    }
+
+    if (projectName !== inputName.trim()) {
+      console.log(
+        `📝 Project name sanitized: "${inputName.trim()}" → "${projectName}"`
+      );
     }
 
     console.log(`\n🔍 Searching for files to replace...`);
@@ -90,7 +104,7 @@ function main() {
 
     for (const file of files) {
       processedFiles++;
-      if (replaceInFile(file, projectName.trim())) {
+      if (replaceInFile(file, projectName)) {
         modifiedFiles++;
       }
     }
@@ -98,7 +112,7 @@ function main() {
     console.log(`\n✨ Done!`);
     console.log(`📊 Files processed: ${processedFiles}`);
     console.log(`🔄 Files modified: ${modifiedFiles}`);
-    console.log(`🎯 Project renamed to: ${projectName.trim()}`);
+    console.log(`🎯 Project renamed to: ${projectName}`);
 
     rl.close();
   });
