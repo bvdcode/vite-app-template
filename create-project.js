@@ -69,12 +69,17 @@ function replaceInFile(filePath, sanitizedName, originalName, config) {
         }
       }
       
-      // Обычная замена переменной
+      // Проверяем контекст для умной замены
       if (content.includes(key)) {
         let valueToReplace = replacementValue;
         
-        // Если значение это массив или объект, конвертируем в JSON строку
-        if (typeof valueToReplace === 'object' && valueToReplace !== null) {
+        // Если это HTML атрибут content="" и значение - массив, конвертируем в строку
+        const htmlContentPattern = new RegExp(`content="${escapeRegExp(key)}"`, 'g');
+        if (htmlContentPattern.test(content) && Array.isArray(replacementValue)) {
+          valueToReplace = replacementValue.join(', ');
+        }
+        // Если значение это массив или объект и это НЕ HTML контекст, конвертируем в JSON строку
+        else if (typeof valueToReplace === 'object' && valueToReplace !== null) {
           valueToReplace = JSON.stringify(valueToReplace);
         }
         
