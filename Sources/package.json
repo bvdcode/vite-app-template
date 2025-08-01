@@ -1,7 +1,13 @@
 {
   "name": "vite-app-template",
   "private": true,
-  "version": "1.0.0",
+  "version": "VITE_APP_TEMPLATE_VERSION",
+  "description": "VITE_APP_TEMPLATE_DESCRIPTION",
+  "author": "VITE_APP_TEMPLATE_AUTHOR",
+  "license": "VITE_APP_TEMPLATE_LICENSE",
+  "keywords": "VITE_APP_TEMPLATE_KEYWORDS",
+  "repository": "VITE_APP_TEMPLATE_REPOSITORY",
+  "homepage": "VITE_APP_TEMPLATE_HOMEPAGE",
   "type": "module",
   "scripts": {
     "dev": "vite",

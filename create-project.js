@@ -34,20 +34,45 @@ function findFiles(
   return results;
 }
 
-function replaceInFile(filePath, sanitizedName, originalName) {
+function loadConfig() {
+  try {
+    const configPath = path.join(process.cwd(), "project-config.json");
+    if (fs.existsSync(configPath)) {
+      const configContent = fs.readFileSync(configPath, "utf8");
+      return JSON.parse(configContent);
+    }
+    return {};
+  } catch (error) {
+    console.warn(`⚠️ Warning: Could not load config file: ${error.message}`);
+    return {};
+  }
+}
+
+function replaceInFile(filePath, sanitizedName, originalName, config) {
   try {
     let content = fs.readFileSync(filePath, "utf8");
     let modified = false;
 
-    // Заменяем vite-app-template на санитизированную версию в нижнем регистре
-    if (content.includes("vite-app-template")) {
-      content = content.replace(/vite-app-template/g, sanitizedName.toLowerCase());
+    // Сначала заменяем переменные из конфига (более длинные строки первыми)
+    // Сортируем ключи по длине в убывающем порядке, чтобы избежать частичных замен
+    const sortedConfigKeys = Object.keys(config).sort((a, b) => b.length - a.length);
+    
+    for (const key of sortedConfigKeys) {
+      if (content.includes(key)) {
+        content = content.replace(new RegExp(key, 'g'), config[key]);
+        modified = true;
+      }
+    }
+
+    // Затем заменяем основные шаблоны
+    // Сначала VITE_APP_TEMPLATE (более длинная строка), потом vite-app-template
+    if (content.includes("VITE_APP_TEMPLATE")) {
+      content = content.replace(/VITE_APP_TEMPLATE/g, originalName.trim());
       modified = true;
     }
 
-    // Заменяем VITE_APP_TEMPLATE на оригинальное имя (только trim)
-    if (content.includes("VITE_APP_TEMPLATE")) {
-      content = content.replace(/VITE_APP_TEMPLATE/g, originalName.trim());
+    if (content.includes("vite-app-template")) {
+      content = content.replace(/vite-app-template/g, sanitizedName.toLowerCase());
       modified = true;
     }
 
@@ -133,7 +158,18 @@ function main() {
       );
     }
 
-    console.log(`\n🔍 Searching for files to replace in Sources folder...`);
+    // Загружаем конфиг
+    console.log(`\n� Loading project configuration...`);
+    const config = loadConfig();
+    const configKeys = Object.keys(config);
+    
+    if (configKeys.length > 0) {
+      console.log(`📋 Found ${configKeys.length} config variables: ${configKeys.join(', ')}`);
+    } else {
+      console.log(`📋 No config file found or config is empty`);
+    }
+
+    console.log(`\n�🔍 Searching for files to replace in Sources folder...`);
 
     const currentDir = process.cwd();
     const sourcesDir = path.join(currentDir, "Sources");
@@ -154,7 +190,7 @@ function main() {
 
     for (const file of files) {
       processedFiles++;
-      if (replaceInFile(file, sanitizedName, originalName)) {
+      if (replaceInFile(file, sanitizedName, originalName, config)) {
         modifiedFiles++;
       }
     }
@@ -164,6 +200,10 @@ function main() {
     console.log(`🔄 Files modified: ${modifiedFiles}`);
     console.log(`🎯 vite-app-template → ${sanitizedName.toLowerCase()}`);
     console.log(`🎯 VITE_APP_TEMPLATE → ${originalName}`);
+    
+    if (configKeys.length > 0) {
+      console.log(`🎯 Config variables replaced: ${configKeys.length}`);
+    }
 
     rl.close();
   });
