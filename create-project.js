@@ -58,15 +58,27 @@ function replaceInFile(filePath, sanitizedName, originalName, config) {
     const sortedConfigKeys = Object.keys(config).sort((a, b) => b.length - a.length);
     
     for (const key of sortedConfigKeys) {
+      const replacementValue = config[key];
+      
+      // Специальная обработка для случая ["VARIABLE_NAME"] - заменяем на содержимое массива
+      const arrayPattern = `["${key}"]`;
+      if (content.includes(arrayPattern)) {
+        if (Array.isArray(replacementValue)) {
+          content = content.replace(new RegExp(escapeRegExp(arrayPattern), 'g'), JSON.stringify(replacementValue));
+          modified = true;
+        }
+      }
+      
+      // Обычная замена переменной
       if (content.includes(key)) {
-        let replacementValue = config[key];
+        let valueToReplace = replacementValue;
         
         // Если значение это массив или объект, конвертируем в JSON строку
-        if (typeof replacementValue === 'object' && replacementValue !== null) {
-          replacementValue = JSON.stringify(replacementValue);
+        if (typeof valueToReplace === 'object' && valueToReplace !== null) {
+          valueToReplace = JSON.stringify(valueToReplace);
         }
         
-        content = content.replace(new RegExp(key, 'g'), replacementValue);
+        content = content.replace(new RegExp(escapeRegExp(key), 'g'), valueToReplace);
         modified = true;
       }
     }
@@ -94,6 +106,11 @@ function replaceInFile(filePath, sanitizedName, originalName, config) {
     console.error(`❌ Error processing file ${filePath}:`, error.message);
     return false;
   }
+}
+
+// Вспомогательная функция для экранирования специальных символов в регулярных выражениях
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function sanitizeProjectName(projectName) {
