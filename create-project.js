@@ -59,31 +59,31 @@ function replaceInFile(filePath, projectName) {
 
     if (modified) {
       fs.writeFileSync(filePath, content, "utf8");
-      console.log(`✅ Обновлен: ${filePath}`);
+      console.log(`✅ Updated: ${filePath}`);
       return true;
     }
 
     return false;
   } catch (error) {
-    console.error(`❌ Ошибка при обработке файла ${filePath}:`, error.message);
+    console.error(`❌ Error processing file ${filePath}:`, error.message);
     return false;
   }
 }
 
 function main() {
-  rl.question("Введите имя проекта: ", (projectName) => {
+  rl.question("Enter project name: ", (projectName) => {
     if (!projectName.trim()) {
-      console.log("❌ Имя проекта не может быть пустым!");
+      console.log("❌ Project name cannot be empty!");
       rl.close();
       return;
     }
 
-    console.log(`\n🔍 Поиск файлов для замены...`);
+    console.log(`\n🔍 Searching for files to replace...`);
 
     const currentDir = process.cwd();
     const files = findFiles(currentDir);
 
-    console.log(`📁 Найдено ${files.length} файлов для проверки`);
+    console.log(`📁 Found ${files.length} files to check`);
 
     let processedFiles = 0;
     let modifiedFiles = 0;
@@ -95,10 +95,10 @@ function main() {
       }
     }
 
-    console.log(`\n✨ Готово!`);
-    console.log(`📊 Обработано файлов: ${processedFiles}`);
-    console.log(`🔄 Изменено файлов: ${modifiedFiles}`);
-    console.log(`🎯 Проект переименован в: ${projectName.trim()}`);
+    console.log(`\n✨ Done!`);
+    console.log(`📊 Files processed: ${processedFiles}`);
+    console.log(`🔄 Files modified: ${modifiedFiles}`);
+    console.log(`🎯 Project renamed to: ${projectName.trim()}`);
 
     rl.close();
   });
