@@ -169,8 +169,34 @@ function validateProjectName(projectName) {
 }
 
 function main() {
-  rl.question("Enter project name: ", (inputName) => {
-    const validation = validateProjectName(inputName);
+  // Загружаем конфиг заранее, чтобы получить дефолтное имя
+  console.log(`📋 Loading project configuration...`);
+  const config = loadConfig();
+  const configKeys = Object.keys(config);
+  
+  if (configKeys.length > 0) {
+    console.log(`📋 Found ${configKeys.length} config variables: ${configKeys.join(', ')}`);
+  } else {
+    console.log(`📋 No config file found or config is empty`);
+  }
+
+  // Получаем дефолтное имя из конфига
+  const defaultName = config.VITE_APP_TEMPLATE_NAME || '';
+  const promptText = defaultName 
+    ? `Enter project name (default: "${defaultName}"): `
+    : "Enter project name: ";
+
+  rl.question(promptText, (inputName) => {
+    // Если ничего не введено, используем дефолтное имя из конфига
+    const projectNameInput = inputName.trim() || defaultName;
+    
+    if (!projectNameInput) {
+      console.log("❌ Project name cannot be empty!");
+      rl.close();
+      return;
+    }
+
+    const validation = validateProjectName(projectNameInput);
     
     if (!validation.valid) {
       console.log(`❌ ${validation.error}`);

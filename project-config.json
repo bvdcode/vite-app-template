@@ -1,4 +1,5 @@
 {
+  "VITE_APP_TEMPLATE_NAME": "My Awesome App",
   "VITE_APP_TEMPLATE_DESCRIPTION": "A modern React application built with Vite",
   "VITE_APP_TEMPLATE_AUTHOR": "Vadim Belov",
   "VITE_APP_TEMPLATE_VERSION": "1.0.0",
