@@ -205,7 +205,7 @@ function main() {
     }
     
     const sanitizedName = validation.sanitized;
-    const originalName = inputName.trim();
+    const originalName = projectNameInput; // Используем фактическое имя (с дефолтом)
     
     if (sanitizedName !== originalName) {
       console.log(
@@ -213,18 +213,7 @@ function main() {
       );
     }
 
-    // Загружаем конфиг
-    console.log(`\n� Loading project configuration...`);
-    const config = loadConfig();
-    const configKeys = Object.keys(config);
-    
-    if (configKeys.length > 0) {
-      console.log(`📋 Found ${configKeys.length} config variables: ${configKeys.join(', ')}`);
-    } else {
-      console.log(`📋 No config file found or config is empty`);
-    }
-
-    console.log(`\n�🔍 Searching for files to replace in Sources folder...`);
+    console.log(`\n🔍 Searching for files to replace in Sources folder...`);
 
     const currentDir = process.cwd();
     const sourcesDir = path.join(currentDir, "Sources");
